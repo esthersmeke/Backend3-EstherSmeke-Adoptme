@@ -57,12 +57,20 @@ router.get("/mockingusers", async (req, res) => {
 });
 
 // Endpoint para generar usuarios y mascotas y eliminarlos antes de insertar nuevos
-// Endpoint para generar usuarios y mascotas y eliminarlos antes de insertar nuevos
 router.post("/generateData", async (req, res) => {
   logger.info("Accediendo al endpoint /generateData");
 
   try {
     const { users, pets } = req.body;
+
+    // Validación de entrada
+    if (!users || !pets) {
+      throw new Error("Los parámetros 'users' y 'pets' son obligatorios");
+    }
+
+    if (typeof users !== "number" || typeof pets !== "number") {
+      throw new Error("'users' y 'pets' deben ser números");
+    }
 
     // Eliminar datos existentes
     await User.deleteMany({});
@@ -83,6 +91,8 @@ router.post("/generateData", async (req, res) => {
         pets: [],
       });
     }
+
+    // Insertar usuarios generados en la base de datos
     const generatedUsers = await User.insertMany(userPromises);
     logger.info(`${generatedUsers.length} usuarios generados e insertados`);
 
@@ -96,14 +106,31 @@ router.post("/generateData", async (req, res) => {
         owner: null,
       });
     }
+
+    // Insertar mascotas generadas en la base de datos
     const generatedPets = await Pet.insertMany(petPromises);
     logger.info(`${generatedPets.length} mascotas generadas e insertadas`);
 
-    res.json({ generatedUsers, generatedPets });
+    // Responder con los usuarios y mascotas generados
+    res.status(200).json({ generatedUsers, generatedPets });
   } catch (err) {
     logger.error(`Error al generar datos: ${err.message}`);
-    res.status(500).json({ error: "Error al generar datos" });
+    res.status(400).json({ error: err.message });
   }
+});
+
+// Endpoint para probar los diferentes niveles de log
+router.get("/loggerTest", (req, res) => {
+  logger.debug("Este es un mensaje de debug");
+  logger.http("Este es un mensaje de http");
+  logger.info("Este es un mensaje de info");
+  logger.warning("Este es un mensaje de warning");
+  logger.error("Este es un mensaje de error");
+  logger.fatal("Este es un mensaje de fatal");
+
+  res.send(
+    "Prueba de niveles de logger realizada, revisa la consola y el archivo de logs."
+  );
 });
 
 export default router;

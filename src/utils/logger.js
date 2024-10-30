@@ -34,6 +34,9 @@ const devLogger = winston.createLogger({
   transports: [new winston.transports.Console({ level: "debug" })],
 });
 
+// Añadir colores personalizados a Winston
+winston.addColors(customLevels.colors);
+
 // Configuración del logger para el entorno de producción
 const prodLogger = winston.createLogger({
   levels: customLevels.levels,
